@@ -26,10 +26,11 @@ bool datalogger::removeData(int& timestamp)
 }
 
 //returns boolean value if data was added
-bool datalogger::addData(int timestamp, int temperature, int windspeed)
+void datalogger::addData(int timestamp, int temperature, int windspeed)
 {
     WeatherData tempData(timestamp, temperature, windspeed);
-    return list.insert(tempData);
+    list.insert(tempData);
+    
 }
 
 //prints report

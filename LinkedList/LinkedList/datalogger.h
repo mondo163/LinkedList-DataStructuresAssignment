@@ -22,7 +22,7 @@ class datalogger
         //class functions
         bool containsTimestamp(int& timestamp);
         bool removeData(int& timestamp);
-        bool addData(int timestamp, int temperature, int windspeed);
+        void addData(int timestamp, int temperature, int windspeed);
         void printReport(const char* label);
 
 };

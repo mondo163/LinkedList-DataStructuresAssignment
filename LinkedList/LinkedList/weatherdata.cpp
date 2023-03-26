@@ -36,7 +36,9 @@ int WeatherData::getTimeStamp()
 
 int WeatherData::getTemperature()
 {
+   
     return temperature;
+     
 }
 
 int WeatherData::getWindSpeed()

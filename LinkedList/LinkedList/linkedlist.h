@@ -35,8 +35,8 @@ class LinkList
 
     //Link List class functions
     void insert(WeatherData& adata);
-    bool retrieve(int& tempStamp);
-    bool remove(int& tempStamp);
+    bool retrieve(const int& tempStamp);
+    bool remove(const int& timeStamp);
     int entriesLessThanFifty();
     int entriesMoreThanZero();
     int mostCommonTemp();

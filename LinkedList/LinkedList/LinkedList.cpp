@@ -72,7 +72,7 @@ LinkList::LinkList(const LinkList &aData){
        }
 
        count = 0;
-       Node     *curr = headWind;
+       curr = headWind;
        dest = headTime;
        src = aData.headWind;
        while (src && count != aData.size){
@@ -119,97 +119,122 @@ LinkList::~LinkList()
 void LinkList::insert(WeatherData& adata)
 { 
     bool    found = false;
-    Node    *newNode = new Node();
+    Node    *newNode = new Node(adata);
 
+   
        //starts list or continues it
     if (!headTime)
     {
-        headTime = new Node(adata);
-        headTemp = headTime;
-        headWind = headTime;
+        headTime = newNode;
+        headTemp = newNode;
+        headWind = newNode;
 
         size++;
     }
     else
     {
-        Node    *newNode = new Node(adata);
-        Node    *curr = headTime;
-        Node    *prev = nullptr;
-        
+        Node* curr = headTime;
+        Node* prev = nullptr;
         //check to find insertion position in Timestamp chain
-        while(!found && curr != nullptr)
+        while(!found)
         {
-            if (adata.getTimeStamp() <= curr->data.getTimeStamp()){
-                if (!prev){
+            if (!curr)
+            {
+                prev->nextTime = newNode;
+                newNode->prevTime = prev;
+                found = true;
+            }
+            else if (adata.getTimeStamp() <= curr->data.getTimeStamp()){
+                if (curr == headTime){
                     headTime = newNode;
                     newNode->nextTime = curr;
-                }else if(!curr){
-                    prev->nextTime = newNode;
+                    curr->prevTime = newNode;
                 }else{
                     newNode->nextTime = curr;
+                    newNode->prevTime = prev;
+
                     prev->nextTime = newNode;
+                    curr->prevTime = newNode;
                 }
                 found = true; 
             }
             else
             {
-              prev = curr;
-              curr = curr->nextTime;
+                prev = curr;
+                curr = curr->nextTime;
             }
         }  
 
         found = false;
         curr = headTemp;
         prev = nullptr;
-        while(!found && curr != nullptr)
+        while (!found)
         {
-            if (adata.getTemperature() <= curr->data.getTemperature()){
-                if (!prev){
+            if (!curr)
+            {
+                prev->nextTemp = newNode;
+                newNode->prevTemp = prev;
+                found = true;
+            }
+            else if (adata.getTemperature() <= curr->data.getTemperature()) {
+                if (curr == headTemp) {
                     headTemp = newNode;
                     newNode->nextTemp = curr;
-                }else if(!curr){
-                    prev->nextTemp = newNode;
-                }else{
-                    newNode->nextTemp = curr;
-                    prev->nextTemp = newNode;
+                    curr->prevTemp = newNode;
                 }
-                found = true; 
+                else {
+                    newNode->nextTemp = curr;
+                    newNode->prevTemp = prev;
+
+                    prev->nextTemp = newNode;
+                    curr->prevTemp = newNode;
+                }
+                found = true;
             }
             else
             {
-              prev = curr;
-              curr = curr->nextTemp;
+                prev = curr;
+                curr = curr->nextTemp;
             }
-        }  
+        }
         
         found = false;
         curr = headWind;
         prev = nullptr;
-        while(!found && curr != nullptr)
+        while (!found)
         {
-            if (adata.getWindSpeed() <= curr->data.getWindSpeed()){
-                if (!prev){
+            if (!curr)
+            {
+                prev->nextWind = newNode;
+                newNode->prevWind = prev;
+                found = true;
+            }
+            else if (adata.getWindSpeed() <= curr->data.getWindSpeed()) {
+                if (curr == headWind) {
                     headWind = newNode;
                     newNode->nextWind = curr;
-                }else if(!curr){
-                    prev->nextWind = newNode;
-                }else{
-                    newNode->nextWind = curr;
-                    prev->nextWind = newNode;
+                    curr->prevWind = newNode;
                 }
-                found = true; 
+                else {
+                    newNode->nextWind = curr;
+                    newNode->prevWind = prev;
+
+                    prev->nextWind = newNode;
+                    curr->prevWind = newNode;
+                }
+                found = true;
             }
             else
             {
-              prev = curr;
-              curr = curr->nextWind;
+                prev = curr;
+                curr = curr->nextWind;
             }
-        }  
+        }
         size++;
      }
 }
 
-bool LinkList::retrieve(int& tempTime)
+bool LinkList::retrieve(const int& timeStamp)
 {
     Node    *curr;
     int     tStamp;
@@ -218,76 +243,75 @@ bool LinkList::retrieve(int& tempTime)
     for (curr = headTime; curr; curr = curr->nextTime)
     {
         tStamp = curr->data.getTimeStamp();
-        if (tStamp == tempTime)
+        if (tStamp == timeStamp)
             return true;
     }
     return false;
 }
 
-bool LinkList::remove(int& tempStamp)
+bool LinkList::remove(const int& timeStamp)
 {
-    int     timeStamp;
-    Node    *previous = nullptr;
-    Node    *currTime = headTime;
-    Node    *currTemp = headTemp;
-    Node    *currWind = headWind;
+    int     dataTime;
+    Node    *deleteNode = headTime;
     bool    found = false;
  
     //checks for timestamp in the list
-    while (!found && currTime != nullptr)
+    while (!found && deleteNode != nullptr)
     {
-        timeStamp = currTime->data.getTimeStamp();
-        if (timeStamp == tempStamp)
+        dataTime = deleteNode->data.getTimeStamp();
+        if (dataTime == timeStamp)
         {
             //makes sure all repetitions are deleted
             do
             {
-                
-                Node    *del = currTime;
-                currTime = currTime->nextTime;
                 found = true;
 
                 //redirects the timestamp chain
-                if (del == headTime)
-                    headTime = del->nextTime;                   
-                else if (del->nextTime == nullptr)
-                    previous->nextTime = nullptr; 
+                if (deleteNode == headTime)
+                    headTime = deleteNode->nextTime;
+                else if (deleteNode->nextTime == nullptr)
+                    deleteNode->prevTime->nextTime = nullptr;
                 else 
-                    previous->nextTime = curr;
-              
+                {
+                    deleteNode->prevTime->nextTime = deleteNode->nextTime;
+                    deleteNode->nextTime->prevTime = deleteNode->prevTime;
+                }
             
                 //redirects the temperature chain
-                if (del == headTemp)
-                    headTemp = del->nextTemp;
-                else if (del->nextTemp == nullptr)
-                     del->prevTemp->nextTemp = nullptr;
+                if (deleteNode == headTemp)
+                    headTemp = deleteNode->nextTemp;
+                else if (deleteNode->nextTemp == nullptr)
+                     deleteNode->prevTemp->nextTemp = nullptr;
                 else
                 {
-                    del->prevTemp->nextTemp = del->nextTemp;
-                    del->nextTemp->prevTemp = del->prevTemp;
+                    deleteNode->prevTemp->nextTemp = deleteNode->nextTemp;
+                    deleteNode->nextTemp->prevTemp = deleteNode->prevTemp;
                 }
 
                 //redirects the windspeed chain
-                if (del == headWind)
-                    headWind = del->nextWind;
-                else if (del->nextWind == nullptr)
-                    del->prevWind->nextWind = nullptr;
+                if (deleteNode == headWind)
+                    headWind = deleteNode->nextWind;
+                else if (deleteNode->nextWind == nullptr)
+                    deleteNode->prevWind->nextWind = nullptr;
                 else
                 {
-                    del->prevWind->nextWind = del->nextWind;
-                    del->nextWind->prevWind = del->prevWind;
+                    deleteNode->prevWind->nextWind = deleteNode->nextWind;
+                    deleteNode->nextWind->prevWind = deleteNode->prevWind;
                 }
-    
-                delete del;
-                del = nullptr;
+                
+                //delete the node and move the pointer to the next node to check for copies
+                Node* removeNode = deleteNode;
+                deleteNode = deleteNode->nextTime;
+                delete removeNode;
+                removeNode = nullptr;
                 size--;
-            }while (curr && curr->data.getTimeStamp() == tempStamp);
+
+            }while (deleteNode && deleteNode->data.getTimeStamp() == timeStamp);
             return true;
         }
         else
         {
-            previous = curr;
-            curr = curr->nextTime;
+            deleteNode = deleteNode->nextTime;
         }
     }
    return false;
@@ -418,7 +442,8 @@ int LinkList::averageRangeTemp(int first, int second)
     //begins to sum the total of the temperatures
     for (target; target <= second; target++)
     {
-        sum += curr->data.getTemperature();
+        
+        sum += (curr->data.getTemperature());
         curr = curr->nextTemp;
     } 
     return sum;
